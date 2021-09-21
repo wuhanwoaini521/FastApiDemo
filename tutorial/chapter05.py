@@ -1,7 +1,7 @@
 ﻿'''
 Author: han wu 
 Date: 2021-08-30 21:43:21
-LastEditTime: 2021-09-21 20:51:02
+LastEditTime: 2021-09-21 21:19:08
 LastEditors: your name
 Description: 
 FilePath: /FastApiDemo/tutorial/chapter05.py
@@ -9,7 +9,7 @@ FilePath: /FastApiDemo/tutorial/chapter05.py
 '''
 
 from typing import Optional
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header,HTTPException
 
 app05 = APIRouter()
 
@@ -62,3 +62,19 @@ def sub_query(q: str = Depends(query), last_query: Optional[str] = None):
 @app05.get('/sub_query_test')
 async def test_sub_query(final_query: str = Depends(sub_query, use_cache=True)):
     return {"final_query": final_query}
+
+# 路径参数中添加依赖
+
+def verify_token(x_token: str = Header(...)):
+    if x_token != "fake_x_token":
+        raise HTTPException(status_code=400, detail="你输入的这个token就是不对得！")
+    return x_token
+
+def verify_key(x_key: str = Header(...)):
+    if x_key != "fake_x_token":
+        raise HTTPException(status_code=400, detail="你输入的这个key就是不对得！")
+    return x_key
+
+@app05.get('/path_def_verify',dependencies=[Depends(verify_token),Depends(verify_key)])
+async def path_def_verify():
+    return [{"user01":"user01","user02":"user02"}]
